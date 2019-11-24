@@ -19,7 +19,7 @@ import utils
 watchdog_logger = logging
 CONNECTION_TIMEOUT = 10
 PING_PONG_TIMEOUT = 15
-DELAY__PING_PONG = 15
+DELAY_PING_PONG = 15
 
 
 class InvalidToken(Exception):
