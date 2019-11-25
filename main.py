@@ -8,7 +8,7 @@ from concurrent.futures import TimeoutError
 from contextlib import asynccontextmanager
 from socket import gaierror
 from tkinter import messagebox
-
+from aiofile import AIOFile
 import aionursery
 from async_timeout import timeout
 
@@ -45,7 +45,7 @@ async def main():
     async with create_handy_nursery() as nursery:
         nursery.start_soon(gui.draw(queues['messages_queue'], queues['sending_queue'], queues['status_updates_queue']))
         nursery.start_soon(handle_connection(args.host, args.port_reader, args.port_writer, args.history, args.token, queues))
-        nursery.start_soon(save_messages(args.history, queues['messages_queue']))
+        nursery.start_soon(save_messages(args.history, queues['history_queue']))
 
 
 async def read_msgs(host, port, queues):
@@ -65,8 +65,12 @@ async def get_message_text(reader):
 
 
 async def save_messages(filepath, queue):
-    while True:
-        await mc.write_message_to_file(filepath, await queue.get())
+    #await mc.write_message_to_file(filepath, await queue.get())
+    async with AIOFile(filepath, 'a') as my_file:
+        while True:
+            message = await queue.get()
+            await my_file.write(message)
+
 
 
 async def send_msgs(reader, writer, queues):
