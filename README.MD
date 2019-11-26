@@ -21,7 +21,11 @@ NICKNAME=default nick
 HISTORY=history.txt
 TOKEN=TOKEN
 ```
-Для запуска:
+Для запуска чата:
 ```bash
 python main.py
+```
+Для запуска регистрации нового пользователя:
+```bash
+python registration.py
 ```

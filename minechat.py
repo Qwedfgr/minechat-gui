@@ -41,7 +41,7 @@ async def open_connection(host, port, queues):
                 await write_message_to_file(args.history, error_message)
             else:
                 error_message = 'Нет соединения. Повторная попытка через 3 сек.\n'
-                #print(await write_message_to_file(args.history, error_message))
+                # print(await write_message_to_file(args.history, error_message))
                 await asyncio.sleep(3)
                 continue
 

@@ -8,8 +8,9 @@ from concurrent.futures import TimeoutError
 from contextlib import asynccontextmanager
 from socket import gaierror
 from tkinter import messagebox
-from aiofile import AIOFile
+
 import aionursery
+from aiofile import AIOFile
 from async_timeout import timeout
 
 import gui
@@ -26,25 +27,14 @@ class InvalidToken(Exception):
     pass
 
 
-def get_arguments_parser():
-    formatter_class = argparse.ArgumentDefaultsHelpFormatter
-    parser = argparse.ArgumentParser(formatter_class=formatter_class)
-    parser.add_argument('--host', type=str, default=os.getenv('HOST'), help='set host')
-    parser.add_argument('--port_reader', type=int, default=os.getenv('PORT_READER'), help='set port reader')
-    parser.add_argument('--port_writer', type=int, default=os.getenv('PORT_WRITER'), help='set port writer')
-    parser.add_argument('--history', type=str, default=os.getenv('HISTORY'), help='set path to history file')
-    parser.add_argument('--nickname', type=str, default=os.getenv('NICKNAME'), help='set your nickname')
-    parser.add_argument('--token', type=str, default=os.getenv('TOKEN'), help='set your token')
-    return parser
-
-
 async def main():
     queues = get_queues()
-    args = utils.get_args(get_arguments_parser)
+    args = utils.get_args()
 
     async with create_handy_nursery() as nursery:
         nursery.start_soon(gui.draw(queues['messages_queue'], queues['sending_queue'], queues['status_updates_queue']))
-        nursery.start_soon(handle_connection(args.host, args.port_reader, args.port_writer, args.history, args.token, queues))
+        nursery.start_soon(
+            handle_connection(args.host, args.port_reader, args.port_writer, args.history, args.token, queues))
         nursery.start_soon(save_messages(args.history, queues['history_queue']))
 
 
@@ -65,12 +55,11 @@ async def get_message_text(reader):
 
 
 async def save_messages(filepath, queue):
-    #await mc.write_message_to_file(filepath, await queue.get())
+    # await mc.write_message_to_file(filepath, await queue.get())
     async with AIOFile(filepath, 'a') as my_file:
         while True:
             message = await queue.get()
             await my_file.write(message)
-
 
 
 async def send_msgs(reader, writer, queues):
@@ -83,7 +72,7 @@ async def send_msgs(reader, writer, queues):
 async def watch_for_connection(watchdog_queue):
     while True:
         try:
-            async with timeout(CONNECTION_TIMEOUT) as cm:
+            async with timeout(CONNECTION_TIMEOUT):
                 message = await watchdog_queue.get()
                 watchdog_logger.info(message)
         except asyncio.TimeoutError:
