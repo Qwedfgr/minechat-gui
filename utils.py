@@ -1,7 +1,9 @@
 import argparse
 import logging
 import os
+from contextlib import asynccontextmanager
 
+import aionursery
 import dotenv
 
 
@@ -25,3 +27,14 @@ def set_logging_config():
         format='%(asctime)s: %(message)s',
         datefmt='%H:%M:%S',
     )
+
+
+@asynccontextmanager
+async def create_handy_nursery():
+    try:
+        async with aionursery.Nursery() as nursery:
+            yield nursery
+    except aionursery.MultiError as e:
+        if len(e.exceptions) == 1:
+            raise e.exceptions[0] from None
+        raise

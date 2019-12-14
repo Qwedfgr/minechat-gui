@@ -31,7 +31,7 @@ async def open_connection(host, port, queues):
             reader, writer = await asyncio.open_connection(host=host, port=port)
             queues['status_updates_queue'].put_nowait(gui.ReadConnectionStateChanged.ESTABLISHED)
             if attempt:
-                print(await write_message_to_file(args.history, 'Установлено соединение\n'))
+                print(await write_message_to_file(history, 'Установлено соединение\n'))
                 attempt = 0
             return reader, writer
         except (ConnectionRefusedError, ConnectionResetError, gaierror, TimeoutError):

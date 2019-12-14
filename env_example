@@ -1,0 +1,6 @@
+HOST=minechat.dvmn.org
+PORT_READER=5000
+PORT_WRITER=5050
+NICKNAME=default nick
+HISTORY=history.txt
+TOKEN=TOKEN

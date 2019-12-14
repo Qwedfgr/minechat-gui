@@ -1,15 +1,9 @@
-import argparse
 import asyncio
 import logging
-import os
 import sys
-import time
-from concurrent.futures import TimeoutError
-from contextlib import asynccontextmanager
 from socket import gaierror
 from tkinter import messagebox
 
-import aionursery
 from aiofile import AIOFile
 from async_timeout import timeout
 
@@ -31,10 +25,11 @@ async def main():
     queues = get_queues()
     args = utils.get_args()
 
-    async with create_handy_nursery() as nursery:
+    async with utils.create_handy_nursery() as nursery:
         nursery.start_soon(gui.draw(queues['messages_queue'], queues['sending_queue'], queues['status_updates_queue']))
         nursery.start_soon(
-            handle_connection(args.host, args.port_reader, args.port_writer, args.history, args.token, queues))
+            handle_connection(args.host, args.port_reader, args.port_writer, args.history, args.token, queues)
+        )
         nursery.start_soon(save_messages(args.history, queues['history_queue']))
 
 
@@ -55,7 +50,6 @@ async def get_message_text(reader):
 
 
 async def save_messages(filepath, queue):
-    # await mc.write_message_to_file(filepath, await queue.get())
     async with AIOFile(filepath, 'a') as my_file:
         while True:
             message = await queue.get()
@@ -92,7 +86,7 @@ async def handle_connection(host, port_reader, port_writer, history, token, queu
                     event = gui.NicknameReceived(account_info['nickname'])
                     queues['status_updates_queue'].put_nowait(event)
 
-                async with create_handy_nursery() as nursery:
+                async with utils.create_handy_nursery() as nursery:
                     nursery.start_soon(mc.restore_history(history, queues['messages_queue']))
                     nursery.start_soon(read_msgs(host, port_reader, queues))
                     nursery.start_soon(send_msgs(*streams, queues))
@@ -109,17 +103,6 @@ def get_queues():
     list_of_queues = ['messages_queue', 'sending_queue', 'status_updates_queue', 'history_queue', 'watchdog_queue']
     queues = {k: asyncio.Queue() for k in list_of_queues}
     return queues
-
-
-@asynccontextmanager
-async def create_handy_nursery():
-    try:
-        async with aionursery.Nursery() as nursery:
-            yield nursery
-    except aionursery.MultiError as e:
-        if len(e.exceptions) == 1:
-            raise e.exceptions[0] from None
-        raise
 
 
 async def ping_pong(reader, writer, watchdog_queue):
