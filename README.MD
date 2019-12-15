@@ -29,3 +29,4 @@ python main.py
 ```bash
 python registration.py
 ```
+Токен будет сохранен в файл `.env`

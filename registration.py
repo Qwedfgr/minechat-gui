@@ -12,12 +12,9 @@ async def draw(registration_queue):
     root.title('Регистрация нового пользователя')
 
     root_frame = tk.Frame(root, width=300)
-    root_frame.pack(pady=10)
+    root_frame.pack()
 
-    label = tk.Label(
-        height=1,
-        text='Введите ник'
-    )
+    label = tk.Label(height=1, text='Введите ник')
     label.pack()
 
     username_input = tk.Entry(width=20)
@@ -49,18 +46,22 @@ async def handle_connection(host, port_writer, queue):
             user_info = await register(writer, reader, queue)
             token = user_info['account_hash']
             save_to_env(token)
-        except Exception as err:
-            print(err)
+        except Exception as e:
+            print(e)
 
 
 def save_to_env(token):
     with open('.env', 'r') as env_file:
         data = env_file.read()
+    old_line = ''
     for line in data.split('\n'):
         if line.startswith('TOKEN='):
             old_line = line
-            new_line = f'TOKEN={token}'
-    data = data.replace(old_line, new_line)
+    new_line = f'TOKEN={token}'
+    if old_line:
+        data = data.replace(old_line, new_line)
+    else:
+        data += new_line
     with open('.env', 'w') as env_file:
         env_file.write(data)
 

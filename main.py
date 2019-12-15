@@ -11,7 +11,7 @@ import gui
 import minechat as mc
 import utils
 
-watchdog_logger = logging
+watchdog_logger = logging.getLogger('watchdog_logger')
 CONNECTION_TIMEOUT = 10
 PING_PONG_TIMEOUT = 15
 DELAY_PING_PONG = 15
@@ -33,9 +33,9 @@ async def main():
         nursery.start_soon(save_messages(args.history, queues['history_queue']))
 
 
-async def read_msgs(host, port, queues):
+async def read_msgs(host, port, history, queues):
     while True:
-        async with mc.get_connection(host, port, queues) as (reader, _):
+        async with mc.get_connection(host, port, history, queues) as (reader, _):
             message = await get_message_text(reader)
             queues['messages_queue'].put_nowait(message)
             queues['watchdog_queue'].put_nowait('New message in chat')
@@ -70,14 +70,14 @@ async def watch_for_connection(watchdog_queue):
                 message = await watchdog_queue.get()
                 watchdog_logger.info(message)
         except asyncio.TimeoutError:
-            watchdog_logger.info(f"{CONNECTION_TIMEOUT}s is elapsed")
+            watchdog_logger.info(f"{CONNECTION_TIMEOUT} s is elapsed")
             raise ConnectionError
 
 
 async def handle_connection(host, port_reader, port_writer, history, token, queues):
     while True:
         try:
-            async with mc.get_connection(host, port_writer, queues) as streams:
+            async with mc.get_connection(host, port_writer, history, queues) as streams:
                 async with timeout(CONNECTION_TIMEOUT):
                     is_authorized, account_info = await mc.authorise(*streams, token)
                     if not is_authorized:
@@ -88,7 +88,7 @@ async def handle_connection(host, port_reader, port_writer, history, token, queu
 
                 async with utils.create_handy_nursery() as nursery:
                     nursery.start_soon(mc.restore_history(history, queues['messages_queue']))
-                    nursery.start_soon(read_msgs(host, port_reader, queues))
+                    nursery.start_soon(read_msgs(host, port_reader, history, queues))
                     nursery.start_soon(send_msgs(*streams, queues))
                     nursery.start_soon(watch_for_connection(queues["watchdog_queue"]))
                     nursery.start_soon(ping_pong(*streams, queues["watchdog_queue"]))

@@ -9,9 +9,9 @@ import gui
 
 
 @asynccontextmanager
-async def get_connection(host, port, queues):
+async def get_connection(host, port, history, queues):
     status_updates_queue = queues['status_updates_queue']
-    reader, writer = await open_connection(host, port, queues)
+    reader, writer = await open_connection(host, port, history, queues)
     status_updates_queue.put_nowait(gui.ReadConnectionStateChanged.INITIATED)
     status_updates_queue.put_nowait(gui.SendingConnectionStateChanged.INITIATED)
     try:
@@ -24,7 +24,7 @@ async def get_connection(host, port, queues):
         writer.close()
 
 
-async def open_connection(host, port, queues):
+async def open_connection(host, port, history, queues):
     attempt = 0
     while True:
         try:
@@ -38,10 +38,10 @@ async def open_connection(host, port, queues):
             attempt += 1
             if attempt <= 3:
                 error_message = 'Нет соединения. Повторная попытка\n'
-                await write_message_to_file(args.history, error_message)
+                await write_message_to_file(history, error_message)
             else:
                 error_message = 'Нет соединения. Повторная попытка через 3 сек.\n'
-                # print(await write_message_to_file(args.history, error_message))
+                print(await write_message_to_file(history, error_message))
                 await asyncio.sleep(3)
                 continue
 
