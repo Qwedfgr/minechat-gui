@@ -15,8 +15,8 @@ pip install -r requirements.txt
 Пример установки переменных окружения можно посмотреть в файле ```env_example```
 ```.env
 HOST=minechat.dvmn.org
-PORT_READER=5000
-PORT_WRITER=5050
+READER_PORT=5000
+WRITER_PORT=5050
 NICKNAME=default nick
 HISTORY=history.txt
 TOKEN=TOKEN

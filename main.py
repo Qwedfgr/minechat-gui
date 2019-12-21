@@ -28,7 +28,7 @@ async def main():
     async with utils.create_handy_nursery() as nursery:
         nursery.start_soon(gui.draw(queues['messages_queue'], queues['sending_queue'], queues['status_updates_queue']))
         nursery.start_soon(
-            handle_connection(args.host, args.port_reader, args.port_writer, args.history, args.token, queues)
+            handle_connection(args.host, args.reader_port, args.writer_port, args.history, args.token, queues)
         )
         nursery.start_soon(save_messages(args.history, queues['history_queue']))
 
@@ -74,10 +74,10 @@ async def watch_for_connection(watchdog_queue):
             raise ConnectionError
 
 
-async def handle_connection(host, port_reader, port_writer, history, token, queues):
+async def handle_connection(host, reader_port, writer_port, history, token, queues):
     while True:
         try:
-            async with mc.get_connection(host, port_writer, history, queues) as streams:
+            async with mc.get_connection(host, writer_port, history, queues) as streams:
                 async with timeout(CONNECTION_TIMEOUT):
                     is_authorized, account_info = await mc.authorise(*streams, token)
                     if not is_authorized:
@@ -88,7 +88,7 @@ async def handle_connection(host, port_reader, port_writer, history, token, queu
 
                 async with utils.create_handy_nursery() as nursery:
                     nursery.start_soon(mc.restore_history(history, queues['messages_queue']))
-                    nursery.start_soon(read_msgs(host, port_reader, history, queues))
+                    nursery.start_soon(read_msgs(host, reader_port, history, queues))
                     nursery.start_soon(send_msgs(*streams, queues))
                     nursery.start_soon(watch_for_connection(queues["watchdog_queue"]))
                     nursery.start_soon(ping_pong(*streams, queues["watchdog_queue"]))

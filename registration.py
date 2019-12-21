@@ -39,10 +39,10 @@ def get_username(username_input, registration_queue):
     username_input.delete(0, tk.END)
 
 
-async def handle_connection(host, port_writer, queue):
+async def handle_connection(host, writer_port, queue):
     while True:
         try:
-            reader, writer = await asyncio.open_connection(host=host, port=port_writer)
+            reader, writer = await asyncio.open_connection(host=host, port=writer_port)
             user_info = await register(writer, reader, queue)
             token = user_info['account_hash']
             save_to_env(token)
@@ -88,7 +88,7 @@ async def main():
         )
 
         nursery.start_soon(
-            handle_connection(args.host, args.port_writer, registration_queue)
+            handle_connection(args.host, args.writer_port, registration_queue)
         )
 
 
