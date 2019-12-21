@@ -3,9 +3,12 @@ import logging
 import sys
 from socket import gaierror
 from tkinter import messagebox
+import argparse
+import os
 
 from aiofile import AIOFile
 from async_timeout import timeout
+import dotenv
 
 import gui
 import minechat as mc
@@ -21,9 +24,19 @@ class InvalidToken(Exception):
     pass
 
 
+def get_args():
+    parent_parser = utils.get_parent_parser()
+    parser = argparse.ArgumentParser(parents=[parent_parser])
+    parser.add_argument('--history', type=str, default=os.getenv('HISTORY'), help='set path to history file')
+    parser.add_argument('--nickname', type=str, default=os.getenv('NICKNAME'), help='set your nickname')
+    parser.add_argument('--token', type=str, default=os.getenv('TOKEN'), help='set your token')
+    return parser.parse_args()
+
+
 async def main():
+    dotenv.load_dotenv()
     queues = get_queues()
-    args = utils.get_args()
+    args = get_args()
 
     async with utils.create_handy_nursery() as nursery:
         nursery.start_soon(gui.draw(queues['messages_queue'], queues['sending_queue'], queues['status_updates_queue']))

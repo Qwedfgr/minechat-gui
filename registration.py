@@ -2,6 +2,9 @@ import asyncio
 import json
 import sys
 import tkinter as tk
+import argparse
+
+import dotenv
 
 import gui
 import utils
@@ -78,9 +81,16 @@ async def register(writer, reader, queue):
     return json.loads(user_info)
 
 
+def get_args():
+    parent_parser = utils.get_parent_parser()
+    parser = argparse.ArgumentParser(parents=[parent_parser])
+    return parser.parse_args()
+
+
 async def main():
+    dotenv.load_dotenv()
     registration_queue = asyncio.Queue()
-    args = utils.get_args()
+    args = get_args()
 
     async with utils.create_handy_nursery() as nursery:
         nursery.start_soon(

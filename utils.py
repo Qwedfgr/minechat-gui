@@ -4,21 +4,15 @@ import os
 from contextlib import asynccontextmanager
 
 import aionursery
-import dotenv
 
 
-def get_args():
-    dotenv.load_dotenv()
-
+def get_parent_parser():
     formatter_class = argparse.ArgumentDefaultsHelpFormatter
-    parser = argparse.ArgumentParser(formatter_class=formatter_class)
+    parser = argparse.ArgumentParser(formatter_class=formatter_class, add_help=False)
     parser.add_argument('--host', type=str, default=os.getenv('HOST'), help='set host')
-    parser.add_argument('--port_reader', type=int, default=os.getenv('PORT_READER'), help='set port reader')
-    parser.add_argument('--port_writer', type=int, default=os.getenv('PORT_WRITER'), help='set port writer')
-    parser.add_argument('--history', type=str, default=os.getenv('HISTORY'), help='set path to history file')
-    parser.add_argument('--nickname', type=str, default=os.getenv('NICKNAME'), help='set your nickname')
-    parser.add_argument('--token', type=str, default=os.getenv('TOKEN'), help='set your token')
-    return parser.parse_args()
+    parser.add_argument('--reader_port', type=int, default=os.getenv('READER_PORT'), help='set port reader')
+    parser.add_argument('--writer_port', type=int, default=os.getenv('WRITER_PORT'), help='set port writer')
+    return parser
 
 
 def set_logging_config():
