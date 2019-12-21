@@ -46,7 +46,7 @@ async def handle_connection(host, writer_port, queue):
             user_info = await register(writer, reader, queue)
             token = user_info['account_hash']
             save_to_env(token)
-        except Exception as e:
+        except (ConnectionRefusedError, ConnectionResetError, ConnectionError, asyncio.TimeoutError) as e:
             print(e)
 
 
