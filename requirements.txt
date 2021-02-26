@@ -1,4 +1,4 @@
-aiohttp==3.5.4
+aiohttp==3.7.4
 aiofile==1.5.2
 python-dotenv==0.10.2
 aionursery==0.3.0
